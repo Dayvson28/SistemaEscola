@@ -1,0 +1,142 @@
+@page "/calendario"
+@rendermode InteractiveServer
+@using SistemaEscolar.Services
+@inject EducadorService EducadorService
+
+<PageTitle>Calendário</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-9">
+            <div class="p-4">
+                <h3>@mesAtual.ToString("MMMM yyyy")</h3>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="calendar-grid">
+                            <div class="calendar-header">
+                                <div class="calendar-day-header">Dom</div>
+                                <div class="calendar-day-header">Seg</div>
+                                <div class="calendar-day-header">Ter</div>
+                                <div class="calendar-day-header">Qua</div>
+                                <div class="calendar-day-header">Qui</div>
+                                <div class="calendar-day-header">Sex</div>
+                                <div class="calendar-day-header">Sáb</div>
+                            </div>
+                            @for (int semana = 0; semana < 6; semana++)
+                            {
+                                <div class="calendar-week">
+                                    @for (int dia = 0; dia < 7; dia++)
+                                    {
+                                        var dataAtual = primeiroDiaMes.AddDays(semana * 7 + dia); // Calcula a data atual na grade
+                                        var isCurrentMonth = dataAtual.Month == mesAtual.Month; // Verifica se é do mês atual
+                                        <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month")">
+                                            @dataAtual.Day
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Educadores</h5>
+                            </div>
+                            <div class="card-body">
+                                @foreach (var educador in educadores)
+                                {
+                                    <div class="mb-2">
+                                        <span class="badge bg-info">@educador.Nome</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label for="registro" class="form-label">Registro:</label>
+                            <textarea id="registro" @bind="registro" class="form-control" rows="4" placeholder="Digite suas observações..."></textarea>
+                            <button class="btn btn-primary mt-2" @onclick="SalvarRegistro">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .calendar-grid {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #dee2e6;
+    }
+
+    .calendar-header {
+        display: flex;
+        background-color: #f8f9fa;
+    }
+
+    .calendar-day-header {
+        flex: 1;
+        padding: 10px;
+        text-align: center;
+        font-weight: bold;
+        border-right: 1px solid #dee2e6;
+    }
+
+    .calendar-week {
+        display: flex;
+    }
+
+    .calendar-day {
+        flex: 1;
+        padding: 10px;
+        min-height: 60px;
+        border-right: 1px solid #dee2e6;
+        border-bottom: 1px solid #dee2e6;
+        cursor: pointer;
+    }
+
+        .calendar-day:hover {
+            background-color: #f8f9fa;
+        }
+
+    .current-month {
+        background-color: white;
+    }
+
+    .other-month {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+</style>
+
+@code {
+    private DateTime mesAtual = DateTime.Now; // Mês e ano atuais
+    private DateTime primeiroDiaMes; // Primeiro dia do mês atual
+    private List<Models.Educador> educadores = new(); // Lista de educadores
+    private string registro = ""; // Campo de registro
+
+    protected override void OnInitialized() // Carrega os educadores e calcula o primeiro dia do mês
+    {
+        educadores = EducadorService.ObterTodosEducadores(); // Carrega os educadores do serviço
+        CalcularPrimeiroDia(); // Calcula o primeiro dia do mês
+    }
+
+    private void CalcularPrimeiroDia() // Calcula o primeiro dia da semana do mês atual
+    {
+        var primeiroDia = new DateTime(mesAtual.Year, mesAtual.Month, 1); // Primeiro dia do mês
+        var diaSemana = (int)primeiroDia.DayOfWeek; // Dia da semana (0=Domingo, 1=Segunda, ..., 6=Sábado)
+        primeiroDiaMes = primeiroDia.AddDays(-diaSemana); // Ajusta para o início da semana (Domingo)
+    }
+
+    private void SalvarRegistro() // Salva o registro digitado
+    { 
+        // Implementação da lógica para salvar o registro
+        Console.WriteLine($"Registro salvo: {registro}");
+        // Após salvar, limpa o campo
+        registro = ""; 
+    }
+}

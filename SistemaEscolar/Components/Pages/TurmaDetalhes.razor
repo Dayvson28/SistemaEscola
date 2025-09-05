@@ -1,0 +1,511 @@
+@page "/turma/{TurmaId:int}"
+@rendermode InteractiveServer
+@using SistemaEscolar.Models
+@using SistemaEscolar.Services
+@inject TurmaService TurmaService
+@inject EducadorService EducadorService
+
+<PageTitle>Detalhes da Turma</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="p-4">
+                @if (turma != null)
+                {
+                    <div class="mb-3">
+                        <a href="/turmas" class="btn btn-outline-secondary ms-2">Voltar para Turmas</a>
+                        <h3 class="d-flex justify-content-center">@turma.Nome - @turma.Serie</h3>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="d-flex justify-content-center">Informações da Turma</h5>
+                                    <p><strong>Nome:</strong> @turma.Nome</p>
+                                    <p><strong>Série:</strong> @turma.Serie</p>
+                                    <p><strong>Total de Estudantes:</strong> @turma.QuantidadeEstudantes</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4 justify-content-center">
+                        <div class="col-12">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Horário</h5>
+                                    <button class="btn btn-sm btn-light" @onclick="MostrarModalHorario">Add aula</button>
+                                </div>
+                                <div class="card-body">
+                                    @if (horarios.Count > 0)
+                                    {
+                                        <table class="table table-bordered text-center">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>Seg.</th>
+                                                    <th>Ter.</th>
+                                                    <th>Qua.</th>
+                                                    <th>Qui.</th>
+                                                    <th>Sex.</th>
+                                                    <th>Sáb.</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @{
+                                                    var diasSemana = new[] {"Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado" };
+                                                    var maxAulas = 8;
+                                                }
+                                                @for (int aula = 1; aula <= maxAulas; aula++)
+                                                {
+                                                    <tr>
+                                                        @foreach (var dia in diasSemana)
+                                                        {
+                                                            var horario = horarios.FirstOrDefault(h => h.DiaSemana == dia && h.NumeroAula == aula);
+                                                            <td>@(horario?.NomeDisciplina?.Substring(0, Math.Min(4, horario.NomeDisciplina.Length)) ?? "")</td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Nenhum horário cadastrado.</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Diário</h5>
+                                    <button class="btn btn-sm btn-light" @onclick="MostrarModalDisciplina">+ Adicionar</button>
+                                </div>
+                                <div class="card-body">
+                                    @if (disciplinas.Count > 0)
+                                    {
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Disciplina</th>
+                                                    <th>Professor</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var disciplina in disciplinas.OrderBy(d => d.Nome))
+                                                {
+                                                    <tr>
+                                                        <td>@disciplina.Nome</td>
+                                                        <td>@disciplina.Professor</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Nenhuma disciplina cadastrada.</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Estudantes</h5>
+                                    <button class="btn btn-sm btn-light" @onclick="MostrarFormularioEstudante">+ Adicionar</button>
+                                </div>
+                                <div class="card-body">
+                                    @if (turma.Estudantes.Count > 0)
+                                    {
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Nome</th>
+                                                    <th>Idade</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var estudante in turma.Estudantes.OrderBy(e => e.Nome))
+                                                {
+                                                    <tr>
+                                                        <td>@estudante.Nome</td>
+                                                        <td>@estudante.Idade</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Nenhum estudante cadastrado.</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(mensagemAlertaHorario))
+                    {
+                        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+                            <div class="toast show align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="d-flex">
+                                    <div class="toast-body">
+                                        @mensagemAlertaHorario
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar" @onclick="()=>mensagemAlertaHorario=null"></button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (mostrarFormEstudante)
+                    {
+                        <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-info text-white">
+                                        <h5 class="modal-title">Adicionar Novo Estudante</h5>
+                                        <button type="button" class="btn-close" aria-label="Fechar" @onclick="CancelarFormularioEstudante"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label">Nome:</label>
+                                                <input @bind="novoEstudante.Nome" class="form-control @(estudanteSubmitted && string.IsNullOrEmpty(novoEstudante.Nome) ? "input-validation-error" : "")" />
+                                                @if (estudanteSubmitted && string.IsNullOrEmpty(novoEstudante.Nome))
+                                                {
+                                                    <div class="validation-message">O nome do estudante é obrigatório</div>
+                                                }
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label">Idade:</label>
+                                                <input @bind="novoEstudante.Idade" type="number" class="form-control @(estudanteSubmitted && novoEstudante.Idade <= 0 ? "input-validation-error" : "")" />
+                                                @if (estudanteSubmitted && novoEstudante.Idade <= 0)
+                                                {
+                                                    <div class="validation-message">A idade é obrigatória</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-primary" @onclick="AdicionarEstudante">Salvar</button>
+                                        <button class="btn btn-secondary" @onclick="CancelarFormularioEstudante">Cancelar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (mostrarModalDisciplina)
+                    {
+                        <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title">Adicionar Nova Disciplina</h5>
+                                        <button type="button" class="btn-close" aria-label="Fechar" @onclick="FecharModalDisciplina"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label">Nome da Disciplina:</label>
+                                                <input @bind="novaDisciplina.Nome" class="form-control @(disciplinaSubmitted && string.IsNullOrEmpty(novaDisciplina.Nome) ? "input-validation-error" : "")" />
+                                                @if (disciplinaSubmitted && string.IsNullOrEmpty(novaDisciplina.Nome))
+                                                {
+                                                    <div class="validation-message">O nome da disciplina é obrigatório</div>
+                                                }
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label">Professor:</label>
+                                                <select @bind="educadorSelecionadoId" class="form-select @(disciplinaSubmitted && educadorSelecionadoId <= 0 ? "input-validation-error" : "")">
+                                                    <option value="0">Selecione...</option>
+                                                    @foreach (var educador in educadores)
+                                                    {
+                                                        <option value="@educador.Id">@educador.Nome</option>
+                                                    }
+                                                </select>
+                                                @if (disciplinaSubmitted && educadorSelecionadoId <= 0)
+                                                {
+                                                    <div class="validation-message">Selecione um professor</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-primary" @onclick="AdicionarDisciplina">Salvar</button>
+                                        <button class="btn btn-secondary" @onclick="FecharModalDisciplina">Cancelar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (mostrarModalHorario)
+                    {
+                        <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title">Adicionar Novo Horário</h5>
+                                        <button type="button" class="btn-close" aria-label="Fechar" @onclick="FecharModalHorario"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-12 mb-2">
+                                                <label class="form-label">Disciplina:</label>
+                                                <select @bind="novoHorario.DisciplinaId" class="form-select @(horarioSubmitted && novoHorario.DisciplinaId <= 0 ? "input-validation-error" : "")">
+                                                    <option value="0">Selecione...</option>
+                                                    @foreach (var disciplina in disciplinas)
+                                                    {
+                                                        <option value="@disciplina.Id">@disciplina.Nome</option>
+                                                    }
+                                                </select>
+                                                @if (horarioSubmitted && novoHorario.DisciplinaId <= 0)
+                                                {
+                                                    <div class="validation-message">Selecione uma disciplina</div>
+                                                }
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label">Dia da Semana:</label>
+                                                <select @bind="novoHorario.DiaSemana" class="form-select @(horarioSubmitted && string.IsNullOrEmpty(novoHorario.DiaSemana) ? "input-validation-error" : "")">
+                                                    <option value="">Selecione...</option>
+                                                    <option value="Segunda">Segunda-feira</option>
+                                                    <option value="Terça">Terça-feira</option>
+                                                    <option value="Quarta">Quarta-feira</option>
+                                                    <option value="Quinta">Quinta-feira</option>
+                                                    <option value="Sexta">Sexta-feira</option>
+                                                </select>
+                                                @if (horarioSubmitted && string.IsNullOrEmpty(novoHorario.DiaSemana))
+                                                {
+                                                    <div class="validation-message">Selecione um dia da semana</div>
+                                                }
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <label class="form-label">Número da Aula:</label>
+                                                <select @bind="novoHorario.NumeroAula" class="form-select @(horarioSubmitted && novoHorario.NumeroAula <= 0 ? "input-validation-error" : "")">
+                                                    <option value="0">Selecione...</option>
+                                                    <option value="1">1ª Aula</option>
+                                                    <option value="2">2ª Aula</option>
+                                                    <option value="3">3ª Aula</option>
+                                                    <option value="4">4ª Aula</option>
+                                                    <option value="5">5ª Aula</option>
+                                                    <option value="6">6ª Aula</option>
+                                                    <option value="7">7ª Aula</option>
+                                                    <option value="8">8ª Aula</option>
+                                                </select>
+                                                @if (horarioSubmitted && novoHorario.NumeroAula <= 0)
+                                                {
+                                                    <div class="validation-message">Informe o número da aula</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-primary" @onclick="AdicionarHorario">Salvar</button>
+                                        <button class="btn btn-secondary" @onclick="FecharModalHorario">Cancelar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Turma não encontrada.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .turma-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .card-link:hover .turma-card {
+        transform: scale(1.03);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+    }
+    .modal-box {
+        background: #fff;
+        border-radius: .5rem;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.2);
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int TurmaId { get; set; } // Recebe o ID da turma pela URL
+
+    private Turma? turma; // Dados da turma
+    private List<Disciplina> disciplinas = new(); // Lista de disciplinas da turma
+    private List<Horario> horarios = new(); // Lista de horários da turma
+    private List<Educador> educadores = new(); // Lista de educadores
+    private int educadorSelecionadoId = 0;
+
+    // Controles de exibição dos formulários
+    private bool mostrarFormEstudante = false;
+    private bool mostrarModalDisciplina = false;
+    private bool mostrarModalHorario = false;
+
+    // Controles de validação
+    private bool disciplinaSubmitted = false;
+    private bool horarioSubmitted = false;
+    private bool estudanteSubmitted = false;
+
+    // Objetos para novos registros
+    private Estudante novoEstudante = new();
+    private Disciplina novaDisciplina = new();
+    private Horario novoHorario = new();
+
+    private string? mensagemAlertaHorario;
+
+    protected override void OnInitialized() // Carrega os dados da turma ao inicializar o componente
+    {
+        CarregarDados();
+        educadores = EducadorService.ObterTodosEducadores();
+    }
+
+    private void CarregarDados()
+    {
+        turma = TurmaService.ObterTurmaPorId(TurmaId); // Buscar turma pelo ID
+        disciplinas = TurmaService.ObterDisciplinasPorTurma(TurmaId); // Buscar disciplinas da turma
+        horarios = TurmaService.ObterHorariosPorTurma(TurmaId); // Buscar horários da turma
+    }
+
+    // Métodos para gerenciar estudantes
+    private void MostrarFormularioEstudante()
+    {
+        mostrarFormEstudante = true;
+        novoEstudante = new Estudante();
+    }
+
+    private void CancelarFormularioEstudante()
+    {
+        mostrarFormEstudante = false;
+        novoEstudante = new Estudante();
+        estudanteSubmitted = false;
+    }
+
+    private void AdicionarEstudante()
+    {
+        estudanteSubmitted = true;
+
+        if (string.IsNullOrEmpty(novoEstudante.Nome) || novoEstudante.Idade <= 0)
+        {
+            return;
+        }
+
+        TurmaService.AdicionarEstudante(TurmaId, novoEstudante);
+        CarregarDados(); // Atualizar dados
+        CancelarFormularioEstudante();
+    }
+
+    // Métodos para gerenciar disciplinas
+    private void MostrarModalDisciplina()
+    {
+        mostrarModalDisciplina = true;
+        novaDisciplina = new Disciplina { TurmaId = TurmaId };
+        educadorSelecionadoId = 0;
+    }
+
+    private void FecharModalDisciplina()
+    {
+        mostrarModalDisciplina = false;
+        novaDisciplina = new Disciplina();
+        disciplinaSubmitted = false;
+        educadorSelecionadoId = 0;
+    }
+
+    private void AdicionarDisciplina()
+    {
+        disciplinaSubmitted = true;
+
+        if (string.IsNullOrEmpty(novaDisciplina.Nome) || educadorSelecionadoId <= 0)
+        {
+            return;
+        }
+
+        var educador = educadores.FirstOrDefault(e => e.Id == educadorSelecionadoId);
+        if (educador != null)
+        {
+            novaDisciplina.Professor = educador.Nome;
+        }
+        novaDisciplina.TurmaId = TurmaId;
+        TurmaService.AdicionarDisciplina(novaDisciplina);
+        CarregarDados(); // Atualizar dados
+        FecharModalDisciplina();
+    }
+
+    // Métodos para gerenciar horários
+    private async void MostrarToastAlerta(string mensagem)
+    {
+        mensagemAlertaHorario = mensagem;
+        StateHasChanged();
+        await Task.Delay(4000); // 4 segundos
+        mensagemAlertaHorario = null;
+        StateHasChanged();
+    }
+
+    private void MostrarModalHorario()
+    {
+        if (disciplinas.Count == 0)
+        {
+            MostrarToastAlerta("Para adicionar um horário, primeiro crie um diário (disciplina)!");
+            mostrarModalHorario = false;
+        }
+        else
+        {
+            mensagemAlertaHorario = null;
+            mostrarModalHorario = true;
+            novoHorario = new Horario { TurmaId = TurmaId };
+        }
+    }
+
+    private void FecharModalHorario()
+    {
+        mostrarModalHorario = false;
+        novoHorario = new Horario();
+        horarioSubmitted = false;
+    }
+
+    private void AdicionarHorario()
+    {
+        horarioSubmitted = true;
+
+        if (novoHorario.DisciplinaId <= 0 || string.IsNullOrEmpty(novoHorario.DiaSemana) || novoHorario.NumeroAula <= 0)
+        {
+            return;
+        }
+
+        // Buscar o nome da disciplina selecionada
+        var disciplina = disciplinas.FirstOrDefault(d => d.Id == novoHorario.DisciplinaId);
+        if (disciplina != null)
+        {
+            novoHorario.NomeDisciplina = disciplina.Nome;
+        }
+
+        novoHorario.TurmaId = TurmaId;
+        TurmaService.AdicionarHorario(novoHorario);
+        CarregarDados(); // Atualizar dados
+        FecharModalHorario();
+    }
+}
