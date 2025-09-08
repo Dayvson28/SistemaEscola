@@ -55,7 +55,7 @@
 
     @if (turmaSelecionada != null)
     {
-        <div class="row mt-4">
+        <div class="row mt-1">
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
@@ -70,13 +70,13 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Dom</th>
-                                    <th>Seg</th>
-                                    <th>Ter</th>
-                                    <th>Qua</th>
-                                    <th>Qui</th>
-                                    <th>Sex</th>
-                                    <th>Sáb</th>
+                                    <th class="bg-danger-subtle">Dom</th>
+                                    <th class="bg-primary-subtle">Seg</th>
+                                    <th class="bg-primary-subtle">Ter</th>
+                                    <th class="bg-primary-subtle">Qua</th>
+                                    <th class="bg-primary-subtle">Qui</th>
+                                    <th class="bg-primary-subtle">Sex</th>
+                                    <th class="bg-success-subtle">Sáb</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -115,9 +115,14 @@
                                                 @if (podeRegistrar)
                                                 {
                                                     <div class="small">
-                                                        @foreach (var horario in horariosAula.Where(h => ConverterDiaSemana(h.DiaSemana) == data.DayOfWeek))
+                                                        @foreach (var horario in horariosAula.Where(h => ConverterDiaSemana(h.DiaSemana) == data.DayOfWeek).GroupBy(h => h.NomeDisciplina))
                                                         {
-                                                            <div>@horario.NomeDisciplina (@horario.NumeroAula)ª</div>
+                                                            <div>
+                                                                @horario.Key 
+                                                                (
+                                                                    @string.Join(", ", horario.Select(h => h.NumeroAula + "ª"))
+                                                                )
+                                                                @* @horario.NomeDisciplina (@horario.NumeroAula)ª *@</div>
                                                         }
                                                     </div>
                                                 }
@@ -306,7 +311,9 @@
 
     private async Task<Dictionary<DateTime, string>> CarregarRegistrosMockAsync(int turmaId)
     {
-        var json = await JS.InvokeAsync<string>("localStorage.getItem", DiarioStorageKey + turmaId);
+        if (educadorSelecionado == null) return new Dictionary<DateTime, string>();
+        var storageKey = $"{DiarioStorageKey}{turmaId}_prof_{educadorSelecionado.Id}";
+        var json = await JS.InvokeAsync<string>("localStorage.getItem", storageKey);
         if (string.IsNullOrEmpty(json))
             return new Dictionary<DateTime, string>();
 
@@ -335,7 +342,7 @@
             registros[dataSelecionada.Value.Date] = registroAtual.Trim();
         }
 
-        await SalvarRegistrosNoArmazenamento();
+        await SalvarRegistrosNoArmazenamento(educadorSelecionado);
         StateHasChanged();
     }
 
@@ -380,12 +387,14 @@
         StateHasChanged();
     }
 
-    private async Task SalvarRegistrosNoArmazenamento()
+    private async Task SalvarRegistrosNoArmazenamento(Educador educador) // Essa função salva os registros da turma selecionada no armazenamento local do navegador
     {
-        if (turmaSelecionada == null) return;
+        if (turmaSelecionada == null || educador == null) return;
         var dict = registros.ToDictionary(kvp => kvp.Key.ToString("yyyy-MM-dd"), kvp => kvp.Value);
         var json = JsonSerializer.Serialize(dict);
-        await JS.InvokeVoidAsync("localStorage.setItem", DiarioStorageKey + turmaSelecionada.TurmaId, json);
+        var storageKey = $"{DiarioStorageKey}{turmaSelecionada.TurmaId}_prof_{educador.Id}";
+        await JS.InvokeVoidAsync("localStorage.setItem", storageKey, json);
+        // await JS.InvokeVoidAsync("localStorage.setItem", DiarioStorageKey + turmaSelecionada.TurmaId, json);
     }
 
     private void MesAnterior()

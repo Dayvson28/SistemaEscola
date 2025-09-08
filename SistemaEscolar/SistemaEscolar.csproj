@@ -6,4 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Remove="Components\Pages\Calendario.razor" />
+    <Content Remove="Components\Pages\Component1.razor" />
+  </ItemGroup>
+
 </Project>
