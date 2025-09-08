@@ -173,17 +173,23 @@
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
+                                            <th>Ord.</th>
                                             <th>Nome</th>
                                             <th class="text-center">Idade</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @{
+                                            int ordem = 1;
+                                        }
                                         @foreach (var estudante in estudantes.OrderBy(e => e.Nome))
                                         {
                                             <tr>
+                                                <td>@ordem</td>
                                                 <td>@estudante.Nome</td>
                                                 <td class="text-center">@estudante.Idade</td>
                                             </tr>
+                                            ordem++;
                                         }
                                     </tbody>
                                 </table>

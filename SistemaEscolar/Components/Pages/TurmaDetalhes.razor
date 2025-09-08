@@ -126,17 +126,23 @@
                                         <table class="table table-sm">
                                             <thead>
                                                 <tr>
+                                                    <th>Ord.</th>
                                                     <th>Nome</th>
                                                     <th>Idade</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
+                                                @{
+                                                    int ordem = 1;
+                                                }
                                                 @foreach (var estudante in turma.Estudantes.OrderBy(e => e.Nome))
                                                 {
                                                     <tr>
+                                                        <td>@ordem</td>
                                                         <td>@estudante.Nome</td>
                                                         <td>@estudante.Idade</td>
                                                     </tr>
+                                                    ordem++;
                                                 }
                                             </tbody>
                                         </table>
