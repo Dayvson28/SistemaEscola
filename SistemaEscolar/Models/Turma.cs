@@ -1,6 +1,6 @@
 ﻿namespace SistemaEscolar.Models
 {
-    public class Turma // Represents a school class
+    public class Turma // Representa uma turma em uma escola
     {
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;

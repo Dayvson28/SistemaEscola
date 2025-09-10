@@ -1,0 +1,59 @@
+﻿@page "/novo-educador"
+@rendermode InteractiveServer
+@inject SistemaEscolar.Services.EducadorService EducadorService
+
+<h3 class="col-md-4 text-center">Selecione um Educador</h3>
+
+<div class="container-fluid">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 text-center">
+            <div class="mb-4">
+                <select @bind="educadorSelecionadoId">
+                    <option value="">Selecione um educador...</option>
+                    @foreach (var e in Educadores)
+                    {
+                        <option value="@e.Id">@e.Nome</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+<br /><br />
+
+<h4>Adicionar Novo Educador</h4>
+<input @bind="novoNome" placeholder="Nome do Educador" />
+<button @onclick="AdicionarNovoEducador">Adicionar</button>
+
+@if(!string.IsNullOrEmpty(mensagem))
+{
+    <p>@mensagem</p>
+}
+
+</div>
+
+@code {
+    private List<Educador> Educadores = new ();
+    private int? educadorSelecionadoId;
+    private string? novoNome;
+    private string? mensagem;
+
+    protected override void OnInitialized()
+    {
+        Educadores = EducadorService.ObterTodosEducadores();
+    }
+
+    private void AdicionarNovoEducador()
+    {
+        if (!string.IsNullOrWhiteSpace(novoNome))
+        {
+            EducadorService.AdicionarEducador(novoNome);
+            Educadores = EducadorService.ObterTodosEducadores();
+            novoNome = string.Empty;
+            mensagem = $"Educador '{novoNome}' adicionado com sucesso!";
+        }
+        else
+        {
+            mensagem = "Por favor, insira um nome válido.";
+        }
+    }
+}

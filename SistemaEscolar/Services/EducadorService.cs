@@ -24,5 +24,16 @@ namespace SistemaEscolar.Services
         }
         public List<Educador> ObterTodosEducadores() => _educadores; // Retorna todos os educadores
         public Educador? ObterEducadorPorId(int id) => _educadores.FirstOrDefault(e => e.Id == id); // Retorna um educador por ID
+
+        public void AdicionarEducador(string nome, List<int>? turmas = null)
+        {
+            var novoEducador = new Educador
+            { 
+            Id = _educadores.Any() ? _educadores.Max(e => e.Id) + 1 : 1,
+            Nome = nome,
+            TurmasIds = turmas ?? new List<int>()
+            };
+        _educadores.Add(novoEducador);
+        }
     }
 }

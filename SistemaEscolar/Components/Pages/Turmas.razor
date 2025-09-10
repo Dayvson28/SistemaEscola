@@ -3,7 +3,6 @@
 @using SistemaEscolar.Models
 @using SistemaEscolar.Services
 @inject TurmaService TurmaService
-@inject NavigationManager Navigation
 
 <PageTitle>Turmas</PageTitle>
 
@@ -12,7 +11,12 @@
         <div class="col-lg-10">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3>Turmas</h3>
-                <button type="button" class="btn btn-primary ms-2" @onclick="MostrarModalAddTurma">Add Turma</button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary " @onclick="AlternarVisualizacao">
+                        <i class="fas @(visualizacaoLista ? "fa-th" : "fa-list" )"></i> @(visualizacaoLista ? "Cards" : "Lista")
+                    </button>
+                    <button type="button" class="btn btn-primary" @onclick="MostrarModalAddTurma">Add Turma</button>
+                </div>
             </div>
 
             @if (mostrarModalTurma)
@@ -50,22 +54,59 @@
                             <h5 class="mb-0">Turmas Cadastradas</h5>
                         </div>
                         <div class="card-body">
-                            <div class="row justify-content-center">
-                                @foreach(var turma in todasTurmas)
-                                {
-                                    <div class="col-md-4 mb-3 d-flex align-items-stretch">
-                                        <a href="/turma/@turma.Id" class="text-decoration-none card-link w-100">
-                                            <div class="card h-100 border-primary turma-card">
-                                                <div class="card-body text-center">
-                                                    <h5 class="card-title">@turma.Nome</h5>
-                                                    <p class="card-text">Série: @turma.Serie</p>
-                                                    <p class="card-text">Estudantes: @turma.QuantidadeEstudantes</p>
+                            @if (visualizacaoLista)
+                            {
+                                <!-- Visualização em Lista -->
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-primary text-center">
+                                            <tr>
+                                                <th>Nome da Turma</th>
+                                                <th>Série</th>
+                                                <th>Estudantes</th>
+                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-center">
+                                            @foreach(var turma in todasTurmas)
+                                            {
+                                                <tr class="turma-row" @onclick="() => VerDetalhesTurma(turma.Id)">
+                                                    <td><strong>@turma.Nome</strong></td>
+                                                    <td>@turma.Serie</td>
+                                                    <td>
+                                                        <span class="badge bg-info fs-6">@turma.QuantidadeEstudantes</span>
+                                                    </td>
+                                                    <td>
+                                                        <a href="/turma/@turma.Id" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye"></i> Ver Detalhes
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Visualização em Cards -->
+                                <div class="row justify-content-center">
+                                    @foreach(var turma in todasTurmas)
+                                    {
+                                        <div class="col-md-4 mb-3 d-flex align-items-stretch">
+                                            <a href="/turma/@turma.Id" class="text-decoration-none card-link w-100">
+                                                <div class="card h-100 border-primary turma-card">
+                                                    <div class="card-body text-center">
+                                                        <h5 class="card-title fw-bold">@turma.Nome</h5>
+                                                        <p class="card-text">Série: @turma.Serie</p>
+                                                        <p class="card-text">Estudantes: @turma.QuantidadeEstudantes</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                }
-                            </div>
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -99,6 +140,13 @@
         max-width: 600px;
         box-shadow: 0 10px 30px rgba(0,0,0,.2);
     }
+    .turma-row {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .turma-row:hover {
+        background-color: #f8f9fa;
+    }
 </style>
 
 @code{
@@ -107,6 +155,7 @@
     private Dictionary<string, int> estatisticas = new(); // Armazena as estatísticas de estudantes por série
     private bool mostrarModalTurma = false; // Controla a exibição do modal de adicionar turma
     private Turma novaTurma = new(); // Armazena os dados da nova turma
+    private bool visualizacaoLista = false; // Controla se a visualização está em lista (true) ou cards (false)
     
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
@@ -152,5 +201,11 @@
     private void VerDetalhesTurma(int turmaId)
     {
         NavigationManager.NavigateTo($"/turma/{turmaId}"); // Navega para a página de detalhes da turma
+    }
+
+    private void AlternarVisualizacao()
+    {
+        visualizacaoLista = !visualizacaoLista; // Alterna entre lista e cards
+        StateHasChanged(); // Força a atualização da UI
     }
 }
