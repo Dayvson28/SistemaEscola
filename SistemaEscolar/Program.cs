@@ -1,5 +1,6 @@
 using SistemaEscolar.Services;
 using SistemaEscolar.Components;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddSingleton<TurmaService>();
 builder.Services.AddSingleton<EducadorService>();
+builder.Services.AddMudServices();
 
 var app = builder.Build();
 
