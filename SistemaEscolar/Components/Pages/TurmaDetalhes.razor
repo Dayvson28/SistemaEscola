@@ -41,7 +41,24 @@
                                 <div class="card-body">
                                     @if (horarios.Count > 0)
                                     {
-                                        <table class="table table-bordered text-center table-sm">
+                                        <style>
+                                            .tabela-horarios {
+                                                table-layout: fixed; /* Força as colunas a terem o mesmo tamanho */
+                                                width: 100%; /* Ocupa toda a largura disponível */
+                                            }
+
+                                            .tabela-horarios th,
+                                            .tabela-horarios td {
+                                                    width: 16.6%; /* 6 colunas, cada uma com 16.6% */
+                                                    height: 25px; /* Altura fixa para as células */
+                                                    vertical-align: middle; /* Centraliza o conteúdo verticalmente */
+                                                    font-size: 14px; /* Texto padronizado */
+                                                    white-space: nowrap; /* Evita quebra de linha */
+                                                    overflow: hidden; /* Esconde o excesso de texto */
+                                                    text-overflow: ellipsis; /* Adiciona reticências ao texto que não cabe */
+                                            }
+                                        </style>
+                                        <table class="table table-bordered text-center table-sm tabela-horarios">
                                             <thead class="table-dark">
                                                 <tr>
                                                     <th>Seg.</th>

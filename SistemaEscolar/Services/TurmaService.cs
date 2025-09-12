@@ -117,5 +117,23 @@ namespace SistemaEscolar.Services // Serviços para gerenciar turmas e estudante
                 _horarios.Add(horario);
             }
         }
+
+        // Métodos para configuração do sistema
+        public void ResetarSistema() // Limpa todos os dados do sistema
+        {
+            _turmas.Clear();
+            _estudantes.Clear();
+            _disciplinas.Clear();
+            _horarios.Clear();
+        }
+
+        public void GerarDadosIniciais() // Gera os dados iniciais do sistema
+        {
+            ResetarSistema(); // Primeiro limpa tudo
+            InicializarDados(); // Depois inicializa os dados
+        }
+
+        public int ObterTotalTurmas() => _turmas.Count; // Retorna o total de turmas
+        public int ObterTotalEstudantes() => _estudantes.Count; // Retorna o total de estudantes
     }
 }

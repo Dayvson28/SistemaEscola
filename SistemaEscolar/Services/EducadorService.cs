@@ -35,5 +35,16 @@ namespace SistemaEscolar.Services
             };
         _educadores.Add(novoEducador);
         }
+
+        public void deletarEducador(int id)
+        {
+            var educador = ObterEducadorPorId(id);
+            if (educador != null)
+            {
+                _educadores.Remove(educador);
+            }
+            else
+                throw new Exception("Educador não encontrado");
+        }
     }
 }

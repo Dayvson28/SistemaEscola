@@ -2,40 +2,110 @@
 @rendermode InteractiveServer
 @inject SistemaEscolar.Services.EducadorService EducadorService
 
-<h3 class="col-md-4 text-center">Selecione um Educador</h3>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0"><i class="fas fa-user-tie"></i> Gerenciar Educadores</h3>
+                </div>
+                <div class="card-body">
 
-<div class="container-fluid">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-6 text-center">
-            <div class="mb-4">
-                <select @bind="educadorSelecionadoId">
-                    <option value="">Selecione um educador...</option>
-                    @foreach (var e in Educadores)
+                    <!-- Seleção de Educador -->
+                    <div class="mb-4">
+                        <label for="educadorSelect" class="form-label fw-bold">Selecione um Educador</label>
+                        <select id="educadorSelect" class="form-select" @bind="educadorSelecionadoId">
+                            <option value="">Selecione um educador...</option>
+                            @foreach (var e in Educadores)
+                            {
+                                <option value="@e.Id">@e.Nome</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Adicionar Novo Educador -->
+                    <div class="mt-4">
+                        <h5 class="text-secondary"><i class="fas fa-plus-circle"></i> Adicionar Novo Educador</h5>
+                        <div class="input-group mt-2">
+                            <input class="form-control" @bind="novoNome" placeholder="Nome do Educador" />
+                            <button class="btn btn-success" @onclick="AdicionarNovoEducador">
+                                <i class="fas fa-check"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Deletar Um Educador -->
+                    <div class="mt-4">
+                        <h5 class="text-secondary"><i class="fas fa-plus-circle"></i>Deletar Educador</h5>
+                        <div class="input-group mt-2">
+                            <input class="form-control" @bind="deletarNome" placeholder="Nome do Educador" />
+                            <button class=" btn btn-danger" @onclick="Deletareducador">
+                                <i class="fas fa-trash me-3"></i>Deletar
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <!-- Mensagem -->
+                    @if (!string.IsNullOrEmpty(mensagem))
                     {
-                        <option value="@e.Id">@e.Nome</option>
+                        <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+                            <i class="fas fa-info-circle"></i> @mensagem
+                            <button type="button" class="btn-close" @onclick="LimparMensagem" data-bs-dismiss="alert"></button>
+                        </div>
                     }
-                </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white d-flex justify-content-center align-items-center">
+                    <h3 class="mb-0"><i class="fas fa-user-tie"></i> Lista de Educadores</h3>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    @if (!Educadores.Any())
+                    {
+                        <p class="text-center text-muted my-3"> Nenhum Educador encontrado</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive align-content-center">
+                            <div class="table table-hover text-center" style="width: auto;">
+                                <thead>
+                                    <tr>
+                                        <th>Ord.</th>
+                                        <th>Nome do Educador</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int ordem = 1;
+                                    }
+                                    @foreach (var educador in Educadores.OrderBy(e => e.Nome))
+                                    {
+                                        <tr>
+                                            <td>@ordem</td>
+                                            <td>@educador.Nome</td>
+                                        </tr>
+                                        ordem++;
+                                    }
+                                </tbody>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
     </div>
-<br /><br />
-
-<h4>Adicionar Novo Educador</h4>
-<input @bind="novoNome" placeholder="Nome do Educador" />
-<button @onclick="AdicionarNovoEducador">Adicionar</button>
-
-@if(!string.IsNullOrEmpty(mensagem))
-{
-    <p>@mensagem</p>
-}
-
 </div>
 
 @code {
-    private List<Educador> Educadores = new ();
+    private List<Educador> Educadores = new();
     private int? educadorSelecionadoId;
     private string? novoNome;
     private string? mensagem;
+    private string? deletarNome;
 
     protected override void OnInitialized()
     {
@@ -48,12 +118,41 @@
         {
             EducadorService.AdicionarEducador(novoNome);
             Educadores = EducadorService.ObterTodosEducadores();
-            novoNome = string.Empty;
+
             mensagem = $"Educador '{novoNome}' adicionado com sucesso!";
+            novoNome = string.Empty;
         }
         else
         {
-            mensagem = "Por favor, insira um nome válido.";
+            mensagem = "⚠️ Por favor, insira um nome válido.";
         }
+    }
+
+    private void Deletareducador()
+    {
+        if(!string.IsNullOrWhiteSpace(deletarNome))
+        {
+            var educador = Educadores.FirstOrDefault(e => e.Nome.Equals(deletarNome, StringComparison.OrdinalIgnoreCase));
+            if(educador != null)
+            {
+                EducadorService.deletarEducador(educador.Id);
+                Educadores = EducadorService.ObterTodosEducadores();
+                mensagem = $"Educador '{deletarNome}' deletado com sucesso!";
+                deletarNome = string.Empty;
+            }
+            else
+            {
+                mensagem = $"⚠️ Educador '{deletarNome}' não encontrado.";
+            }
+        }
+        else
+        {
+            mensagem = "⚠️ Por favor, insira um nome válido para deletar.";
+        }
+    }
+    private void LimparMensagem()
+    {
+        mensagem = string.Empty;
+        StateHasChanged();
     }
 }
