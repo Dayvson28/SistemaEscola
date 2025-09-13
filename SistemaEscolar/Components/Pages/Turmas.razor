@@ -54,6 +54,15 @@
                             <h5 class="mb-0">Turmas Cadastradas</h5>
                         </div>
                         <div class="card-body">
+                            @if(todasTurmas == null || !todasTurmas.Any())
+                            {
+                                <tr>
+                                    <td colspan="0" class="text-center text-muted">
+                                        Nenhuma Turma cadastrada!
+                                    </td>
+                                </tr>
+                            }
+
                             @if (visualizacaoLista)
                             {
                                 <!-- Visualização em Lista -->

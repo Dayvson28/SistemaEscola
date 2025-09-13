@@ -9,7 +9,7 @@
     @* <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Dashboard do Sistema Escolar</h1>
     </div> *@
-    
+
     <div class="row">
         <!-- Card de Turmas por Série -->
         <div class="col-md-6 mb-4">
@@ -18,7 +18,7 @@
                     <h5 class="mb-0">Turmas por Série</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table table-striped">
+                    <table class="table table-striped" >
                         <thead>
                             <tr>
                                 <th>Série</th>
@@ -26,6 +26,14 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @if(TurmasPorSerie == null || !TurmasPorSerie.Any())
+                            {
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">
+                                        Nenhum dado encontrado!
+                                    </td>
+                                </tr>
+                            }
                             @foreach (var serie in TurmasPorSerie)
                             {
                                 <tr>
@@ -54,6 +62,14 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @if(EstudantesPorSerie == null || !EstudantesPorSerie.Any())
+                            {
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">
+                                        Nenhum dado encontrado!
+                                    </td>
+                                </tr>
+                            }
                             @foreach (var serie in EstudantesPorSerie)
                             {
                                 <tr>
@@ -67,7 +83,7 @@
             </div>
         </div>
     </div>
-</div>
+        </div>
 
 @code {
     // Armazena a quantidade de turmas por série

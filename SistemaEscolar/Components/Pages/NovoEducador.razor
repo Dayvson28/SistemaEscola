@@ -12,7 +12,7 @@
                 <div class="card-body">
 
                     <!-- Seleção de Educador -->
-                    <div class="mb-4">
+                    @* <div class="mb-4">
                         <label for="educadorSelect" class="form-label fw-bold">Selecione um Educador</label>
                         <select id="educadorSelect" class="form-select" @bind="educadorSelecionadoId">
                             <option value="">Selecione um educador...</option>
@@ -21,10 +21,10 @@
                                 <option value="@e.Id">@e.Nome</option>
                             }
                         </select>
-                    </div>
+                    </div> *@
 
                     <!-- Adicionar Novo Educador -->
-                    <div class="mt-4">
+                    <div class="mt-2">
                         <h5 class="text-secondary"><i class="fas fa-plus-circle"></i> Adicionar Novo Educador</h5>
                         <div class="input-group mt-2">
                             <input class="form-control" @bind="novoNome" placeholder="Nome do Educador" />
@@ -36,13 +36,27 @@
 
                     <!-- Deletar Um Educador -->
                     <div class="mt-4">
-                        <h5 class="text-secondary"><i class="fas fa-plus-circle"></i>Deletar Educador</h5>
-                        <div class="input-group mt-2">
-                            <input class="form-control" @bind="deletarNome" placeholder="Nome do Educador" />
+                        <h5 class="text-secondary"><i class="fas fa-minus-circle"></i> Deletar Educador</h5>
+                        <div class="input-group mt-2 dropdown" tabindex="0" @onfocusout="HandleFocusOut">
+                            <input class="form-control" @bind="deletarNome" placeholder="Digite o nome do Educador"
+                                   @oninput="FiltrarEducadores" @onfocus="AbrirLista" />
                             <button class=" btn btn-danger" @onclick="Deletareducador">
                                 <i class="fas fa-trash me-3"></i>Deletar
                             </button>
                         </div>
+                        @if (mostrarlista && EducadoresFiltrados?.Any() == true)
+                        {
+                            <ul class="dropdown-menu show w-100" style="max-height: 200px; overflow-y: auto;">
+                                @foreach (var educador in EducadoresFiltrados)
+                                {
+                                    <li> 
+                                        <button type="button" class="dropdown-item" @onclick="() => SelecionarEducador(educador.Nome)">
+                                            @educador.Nome
+                                        </button>
+                                    </li>
+                                }
+                            </ul>
+                        }
                     </div>
 
 
@@ -102,6 +116,7 @@
 
 @code {
     private List<Educador> Educadores = new();
+    private List<Educador> EducadoresFiltrados = new();
     private int? educadorSelecionadoId;
     private string? novoNome;
     private string? mensagem;
@@ -150,6 +165,49 @@
             mensagem = "⚠️ Por favor, insira um nome válido para deletar.";
         }
     }
+
+    private void FiltrarEducadores(ChangeEventArgs e)
+    {
+        deletarNome = e.Value?.ToString() ?? string.Empty;
+
+        if(string.IsNullOrWhiteSpace(deletarNome))
+        {
+            // Se o filtro estiver vazio, mostrar todos os educadores
+            EducadoresFiltrados = Educadores;
+        }
+        else
+        {
+            // Filtrar educadores pelo nome
+            EducadoresFiltrados = Educadores
+                .Where(x => x.Nome.Contains(deletarNome, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    private bool mostrarlista = false;
+
+    private void AbrirLista(FocusEventArgs e)
+    {
+        mostrarlista = true;
+        EducadoresFiltrados = Educadores.OrderBy(x => x.Nome).ToList();
+    }
+
+    private async void HandleFocusOut(FocusEventArgs e)
+    {
+
+        await Task.Delay(150);
+        //@if (!mostrarlista) return;
+        mostrarlista = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void SelecionarEducador(string nome)
+    {
+        deletarNome = nome;
+        mostrarlista = false; // Ocultar a lista de sugestões após a seleção
+        StateHasChanged();
+    }
+
     private void LimparMensagem()
     {
         mensagem = string.Empty;
